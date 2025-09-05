@@ -12,3 +12,9 @@ ping_servers_1:
 
 ping_servers_2:
 	ansible servers_2 -i inventory.ini -m ping
+
+create_users:
+	ansible-playbook playbook_tags.yml -i inventory.ini -t create_users
+
+install:
+	ansible-playbook playbook_tags.yml -i inventory.ini -t install

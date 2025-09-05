@@ -1,0 +1,78 @@
+- hosts: servers_2
+
+  tasks:
+    - name: Create users
+      tags: [create_users]
+      ansible.builtin.user:
+        name: "{{ item }}"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+      loop:
+        - arya
+        - sansa
+        - tirion
+
+    - name: Update apt cache
+      tags: [install]
+      ansible.builtin.apt:
+        update_cache: yes
+      become: yes
+
+    - name: Install Git
+      tags: [install, install_git]
+      ansible.builtin.apt:
+        name: git
+        state: present
+      become: yes
+
+    - name: Install Make
+      tags: [install, install_make]
+      ansible.builtin.apt:
+        name: make
+        state: present
+      become: yes
+
+    - name: Download NVM install script
+      tags: [install, install_node]
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh
+        dest: /tmp/install_nvm.sh
+        mode: '0755'
+      become: yes
+
+    - name: Run NVM install script
+      tags: [install, install_node]
+      ansible.builtin.shell: bash /tmp/install_nvm.sh
+      args:
+        creates: ~/.nvm/nvm.sh
+      become: yes
+
+    - name: Use nvm without editing bashrc
+      tags: [install, install_node]
+      ansible.builtin.shell: |
+        export NVM_DIR=~/.nvm
+        . "$NVM_DIR/nvm.sh"
+        nvm install --lts
+        nvm use --lts
+      args:
+        executable: /bin/bash 
+      become: yes
+
+    - name: Check nvm, node and npm
+      tags: [install, install_node]
+      ansible.builtin.shell: |
+        export NVM_DIR=/root/.nvm
+        . "$NVM_DIR/nvm.sh"
+        echo "nvm: $(nvm --version)"
+        echo "node: $(node -v)"
+        echo "npm: $(npm -v)"
+      args:
+        executable: /bin/bash
+      become: yes
+      register: node_versions
+
+    - name: Print nvm, node and npm versions
+      tags: [install, install_node]
+      ansible.builtin.debug:
+        msg: "{{ node_versions.stdout_lines }}"
