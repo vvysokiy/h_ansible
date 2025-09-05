@@ -1,4 +1,8 @@
 - hosts: servers_1
+  vars:
+    nginx_port: 80
+    root_dir: /var/tmp/www
+    nginx_config_path: /etc/nginx/nginx.conf
 
   tasks:
     - name: install nginx
@@ -7,21 +11,27 @@
         state: latest
       become: yes
 
+    - name: "Ensure {{root_dir}} exists"
+      ansible.builtin.file:
+        path: "{{root_dir}}"
+        state: directory
+        mode: '0755'
+      become: yes
+   
     - name: add static
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: files/index.html
-        dest: /usr/share/nginx/html/index.html
+        dest: "{{root_dir}}/index.html"
       become: yes
 
     - name: add nginx config
-      ansible.builtin.copy:
+      ansible.builtin.template:
         src: files/nginx.conf
-        dest: /etc/nginx/nginx.conf
+        dest: "{{nginx_config_path}}"
       become: yes
       notify:
         - restart nginx
 
-    
   handlers:
     - name: restart nginx
       ansible.builtin.service:
