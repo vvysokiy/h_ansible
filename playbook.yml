@@ -1,0 +1,18 @@
+# На какой группе серверов
+- hosts: servers_2
+
+  tasks:
+    - name: install redis server
+      # apt-get update && apt-get install redis-server
+      ansible.builtin.apt: # имя модуля Ansible
+        name: redis-server
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: uninstall redis server
+      # apt-get remove redis-server
+      ansible.builtin.apt: # имя модуля Ansible
+        name: redis-server
+        state: absent
+      become: yes

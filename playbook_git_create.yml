@@ -1,0 +1,17 @@
+- hosts: servers_1
+
+  tasks:
+    - name: Install GIT
+      ansible.builtin.apt:
+        name: git
+        state: present
+        update_cache: yes
+      become: yes
+
+    - name: Run git --version
+      ansible.builtin.command: git --version
+      register: git_version_output
+
+    - name: Show git version
+      ansible.builtin.debug:
+        msg: "{{ git_version_output.stdout }}"
