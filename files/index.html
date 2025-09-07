@@ -7,6 +7,9 @@
   <title>Hello World!</title>
 </head>
 <body>
-  <h1>Hello World from {{nginx_config_path}}!</h1>
+  <h1>Hello World!</h1>
+
+  <h2>{{ server_name | upper }}!</h2>
+  <small>Deployed at: {{ '%Y-%m-%d %H:%M:%S' | strftime(ansible_date_time.epoch) }}</small>
 </body>
 </html>

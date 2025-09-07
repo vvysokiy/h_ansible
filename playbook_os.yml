@@ -1,4 +1,4 @@
-- hosts: servers_2
+- hosts: servers
   vars:
     packages:
       - git
@@ -11,6 +11,7 @@
     - name: Create users
       tags: [create_users]
       loop: "{{ users | list }}"
+      # when: item.name > 5
       loop_control:
         label: "{{ item.name }}"
       ansible.builtin.user:
@@ -47,16 +48,21 @@
           [credential]
             helper = store
 
-    - name: Update apt cache
+    - name: Install Packages CentOS
       become: yes
       tags: [install]
-      ansible.builtin.apt:
+      when: ansible_distribution == "CentOS"
+      dnf:
         update_cache: yes
+        state: latest
+        name: "{{ packages | list }}"
 
-    - name: Install Packages
+    - name: Install Packages Ubuntu
       become: yes
       tags: [install]
-      ansible.builtin.apt:
+      when: ansible_distribution == "Ubuntu"
+      apt:
+        update_cache: yes
         state: latest
         name: "{{ packages | list }}"
 
@@ -70,47 +76,3 @@
         manage_dir: yes
         key: "{{ lookup('file', 'files/id_rsa.pub') }}"
         path: "/home/{{ item.name }}/.ssh/authorized_keys"
-
-    - name: Download NVM install script
-      tags: [install, install_node]
-      become: yes
-      ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh
-        dest: /tmp/install_nvm.sh
-        mode: '0755'
-
-    - name: Run NVM install script
-      tags: [install, install_node]
-      become: yes
-      ansible.builtin.shell: bash /tmp/install_nvm.sh
-      args:
-        creates: ~/.nvm/nvm.sh
-
-    - name: Use nvm without editing bashrc
-      tags: [install, install_node]
-      become: yes
-      args:
-        executable: /bin/bash 
-      ansible.builtin.shell: |
-        export NVM_DIR=~/.nvm
-        . "$NVM_DIR/nvm.sh"
-        nvm install --lts
-        nvm use --lts
-
-    - name: Check nvm, node and npm
-      tags: [install, install_node]
-      become: yes
-      args:
-        executable: /bin/bash 
-      ansible.builtin.shell: |
-        export NVM_DIR=/root/.nvm
-        . "$NVM_DIR/nvm.sh"
-        echo "nvm: $(nvm --version)"
-        echo "node: $(node -v)"
-        echo "npm: $(npm -v)"
-      register: node_versions
-
-    - name: Print nvm, node and npm versions
-      tags: [install, install_node]
-      ansible.builtin.debug:
-        msg: "{{ node_versions.stdout_lines }}"

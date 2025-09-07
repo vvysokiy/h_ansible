@@ -3,6 +3,7 @@
     nginx_port: 80
     root_dir: /var/tmp/www
     nginx_config_path: /etc/nginx/nginx.conf
+    test_str: "This is server {{ server_name }}!"
 
   tasks:
     - name: install nginx
